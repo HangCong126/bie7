@@ -24,6 +24,7 @@ export default class Main {
     this.playerGenerate()
     this.guidaoGenerate()
     this.faPai()
+    this.playGame()
   }
 
   findFirst() {
@@ -45,12 +46,24 @@ export default class Main {
   }
 
   playGame() {
-    var minNum = this.findMin()
-    while(minNum != 0){
-      var first = this.findFirst()
-      
-      minNum = this.findMin()
+    var playerNum = 3
+    while(playerNum != 0){
+      for (var i=0;i<databus.players.length;i++){
+        if (databus.players[i].finish == false && databus.players[i].playMyPoker() == false){
+          databus.players[i].score += databus.players[i].myPokers[0].index
+          databus.players[i].myPokers.splice(0,1)
+          console.log('%d koupai score %d\n',databus.players[i].sy/40,databus.players[i].score)
+        }
+        if (databus.players[i].finish == false && databus.players[i].myPokers.length == 0){
+          playerNum--
+          databus.players[i].finish = true
+        }
+      }
     }
+    console.log('final score:\n')
+    databus.players.forEach((player) => {
+      console.log('player:%d, shoupai:%d, score %d.\n',player.sy/40,player.myPokers.length,player.score)
+    })
   }
 
   restart() {
@@ -117,8 +130,8 @@ export default class Main {
     })
 
     // 游戏结束停止帧循环
-    if (databus.gameOver) {
-      databus.pokers.forEach((poker) => {
+    if (databus.gameRander) {
+/*       databus.pokers.forEach((poker) => {
         if (poker.judge){
           if(databus.guidao[poker.index%4].isSuitable(poker.index)){
             poker.vis = true
@@ -133,6 +146,11 @@ export default class Main {
           }
           poker.judge = false
         }
+        if (poker.vis){
+          poker.renderPokerToTable(ctx)
+        }
+      }) */
+      databus.pokers.forEach((poker) => {
         if (poker.vis){
           poker.renderPokerToTable(ctx)
         }

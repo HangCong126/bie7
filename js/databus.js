@@ -24,5 +24,6 @@ export default class DataBus {
     this.guidao = []
     this.animations = []
     this.gameOver = true
+    this.gameRander = true
   }
 }

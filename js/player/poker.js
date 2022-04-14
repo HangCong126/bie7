@@ -43,7 +43,6 @@ export default class Poker {
       const y = e.touches[0].clientY
 
       if (this.checkIsFingerOnAir(x, y)) {
-        console.log(this.index)
         this.judge = true
       }
     }))
