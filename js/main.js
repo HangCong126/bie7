@@ -50,9 +50,10 @@ export default class Main {
     while(playerNum != 0){
       for (var i=0;i<databus.players.length;i++){
         if (databus.players[i].finish == false && databus.players[i].playMyPoker() == false){
-          databus.players[i].score += databus.players[i].myPokers[0].index
+          console.log('wo koupai score %d',parseInt((databus.players[i].myPokers[0].index)/4) + 1)
+          databus.players[i].score += parseInt((databus.players[i].myPokers[0].index)/4) + 1
+          databus.players[i].myKoupai.push(databus.players[i].myPokers[0])
           databus.players[i].myPokers.splice(0,1)
-          console.log('%d koupai score %d\n',databus.players[i].sy/40,databus.players[i].score)
         }
         if (databus.players[i].finish == false && databus.players[i].myPokers.length == 0){
           playerNum--
@@ -60,6 +61,7 @@ export default class Main {
         }
       }
     }
+    databus.gameOver = true
     console.log('final score:\n')
     databus.players.forEach((player) => {
       console.log('player:%d, shoupai:%d, score %d.\n',player.sy/40,player.myPokers.length,player.score)
@@ -159,6 +161,12 @@ export default class Main {
         player.myPokers = player.myPokers.sort(this.cmp)
         player.renderMyPoker(ctx)
       })
+      if (databus.gameOver){
+        databus.players.forEach((player) => {
+          player.myKoupai = player.myKoupai.sort(this.cmp)
+          player.renderMyKoupai(ctx)
+        })
+      }
     }
   }
   

@@ -14,6 +14,7 @@ export default class Player {
     this.score = 0
     this.finish = false
     this.myPokers = []
+    this.myKoupai = []
   }
   init(sy) {
     this.sy = sy
@@ -25,7 +26,7 @@ export default class Player {
         if(databus.pokers[j].index == this.myPokers[i].index){
           if(databus.guidao[databus.pokers[j].index%4].isSuitable(databus.pokers[j].index)){
             databus.pokers[j].vis = true
-            console.log('woxia %d',databus.pokers[j].index)
+            console.log('woxia %d',parseInt((databus.pokers[j].index)/4) + 1)
             this.myPokers.splice(i,1);
             databus.guidao[databus.pokers[j].index%4].getPoker(databus.pokers[j].index)
             return true
@@ -38,6 +39,11 @@ export default class Player {
   renderMyPoker(ctx) {
     for (var i=0;i<this.myPokers.length;i++) {
         this.myPokers[i].renderPokerToPlayer(ctx,this.sy,i)
+    }
+  }
+  renderMyKoupai(ctx) {
+    for (var i=0;i<this.myKoupai.length;i++) {
+        this.myKoupai[i].renderPokerToPlayer(ctx,this.sy,i)
     }
   }
 }

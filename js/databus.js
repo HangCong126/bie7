@@ -23,7 +23,7 @@ export default class DataBus {
     this.players = []
     this.guidao = []
     this.animations = []
-    this.gameOver = true
+    this.gameOver = false
     this.gameRander = true
   }
 }
