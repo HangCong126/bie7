@@ -1,3 +1,6 @@
+import DataBus from '../databus'
+
+const databus = new DataBus()
 const screenWidth = window.innerWidth
 const screenHeight = window.innerHeight
 
@@ -42,7 +45,7 @@ export default class Poker {
       const x = e.touches[0].clientX
       const y = e.touches[0].clientY
 
-      if (this.checkIsFingerOnAir(x, y)) {
+      if (this.checkIsFingerOnAir(x, y) && databus.players[0].myTurn == true) {
         this.judge = true
       }
     }))

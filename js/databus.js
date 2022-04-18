@@ -15,7 +15,12 @@ export default class DataBus {
 
     this.reset()
   }
-
+  gitPokerNumber(index) {
+    return parseInt(index/4) + 1;
+  }
+  gitPokerSuits(index) {
+    return index%4;
+  }
   reset() {
     this.frame = 0
     this.score = 0

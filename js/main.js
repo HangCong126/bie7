@@ -26,14 +26,58 @@ export default class Main {
     this.faPai()
     this.playGame()
   }
+  
+  guidaoGenerate() {
+    for (var i=0;i<4;i++) {
+      const guidao = new GameInfo()
+      guidao.init(i)
+      databus.guidao.push(guidao)
+    }
+  }
+  
+  playerGenerate() {
+    for (var i=0;i<3;i++) {
+      const player = new Player()
+      player.init(i)
+      databus.players.push(player)
+    }
+  }
+  
+  pokerGenerate() {
+    for (var i=0;i<52;i++) {
+      const poker = new Poker()
+      poker.init(i)
+      databus.pokers.push(poker)
+    }
+  }
+  
+  faPai() {
+    var arr = Array.from(databus.pokers)
+    var idx
+    while(arr.length!=0) {
+      for (var i=0;i<databus.players.length;i++){
+        if(arr.length!=0) {
+          idx = Math.floor(Math.random()*10)
+          if(arr.length<10) {
+            idx = arr.length - 1
+          }
+          databus.players[i].myPokers.push(arr[idx])
+          arr.splice(idx,1);
+        }
+      }
+    }
+  }
 
   findFirst() {
     for (var i=0;i<databus.players.length;i++){
-      databus.players[i].myPokers.forEach((poker) => {
-        if (poker.index == 27){
-          return i
+      for (var j=0;j<databus.players[i].myPokers.length;j++){
+        if (databus.players[i].myPokers[j].index == 27){
+          databus.players[i].myTurn = true
+          databus.players[i].isfirst = true
+          databus.players[i].firstIndex = j
+          return true
         }
-      })
+      }
     }
   }
 
@@ -45,19 +89,40 @@ export default class Main {
     return min
   }
 
-  playGame() {
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async waitMyTurn() {
+    var max = 0
+    while(databus.players[0].myTurn){
+      max++;
+      if(max==20)return max;
+      await this.sleep(1000);
+      console.log('time remain:\n')
+    }
+  }
+
+  async playGame() {
+    this.findFirst()
     var playerNum = 3
     while(playerNum != 0){
       for (var i=0;i<databus.players.length;i++){
-        if (databus.players[i].finish == false && databus.players[i].playMyPoker() == false){
-          console.log('wo koupai score %d',parseInt((databus.players[i].myPokers[0].index)/4) + 1)
-          databus.players[i].score += parseInt((databus.players[i].myPokers[0].index)/4) + 1
-          databus.players[i].myKoupai.push(databus.players[i].myPokers[0])
-          databus.players[i].myPokers.splice(0,1)
+        await this.sleep(1000);
+        var time = await this.waitMyTurn();
+        if(time == 20){
+          databus.players[i].discardMyPoker();
+          databus.players[i].myTurn = false
+        }
+        if (databus.players[i].myTurn == true && databus.players[i].finish == false){
+          databus.players[i].judgeMyPoker()
+          databus.players[(i+1)%3].myTurn = true
         }
         if (databus.players[i].finish == false && databus.players[i].myPokers.length == 0){
           playerNum--
           databus.players[i].finish = true
+        } else {
+          databus.players[(i+1)%3].myTurn = true
         }
       }
     }
@@ -91,30 +156,6 @@ export default class Main {
       canvas
     )
   }
-  
-  guidaoGenerate() {
-    for (var i=0;i<4;i++) {
-      const guidao = new GameInfo()
-      guidao.init(i)
-      databus.guidao.push(guidao)
-    }
-  }
-  
-  playerGenerate() {
-    for (var i=0;i<3;i++) {
-      const player = new Player()
-      player.init(i*40)
-      databus.players.push(player)
-    }
-  }
-  
-  pokerGenerate() {
-    for (var i=0;i<52;i++) {
-      const poker = new Poker()
-      poker.init(i)
-      databus.pokers.push(poker)
-    }
-  }
 
   /**
    * canvas重绘函数
@@ -133,65 +174,32 @@ export default class Main {
 
     // 游戏结束停止帧循环
     if (databus.gameRander) {
-/*       databus.pokers.forEach((poker) => {
+      databus.pokers.forEach((poker) => {
         if (poker.judge){
           if(databus.guidao[poker.index%4].isSuitable(poker.index)){
-            poker.vis = true
-            databus.players.forEach((player) => {
-              for (var i=0;i<player.myPokers.length;i++){
-                if(player.myPokers[i].index == poker.index){
-                  player.myPokers.splice(i,1);
-                }
-              }
-            })
-            databus.guidao[poker.index%4].getPoker(poker.index)
+            databus.players[0].playMyPokerbyDatabusIndex(poker.index)
+            databus.players[0].myTurn = false
           }
           poker.judge = false
         }
         if (poker.vis){
           poker.renderPokerToTable(ctx)
         }
-      }) */
+      })
       databus.pokers.forEach((poker) => {
         if (poker.vis){
           poker.renderPokerToTable(ctx)
         }
       })
-      databus.players.forEach((player) => {
-        player.myPokers = player.myPokers.sort(this.cmp)
-        player.renderMyPoker(ctx)
-      })
+      for (var i=0;i<1;i++) {
+        databus.players[i].myPokers = databus.players[i].myPokers.sort(this.cmp)
+        databus.players[i].renderMyPoker(ctx)
+      }
       if (databus.gameOver){
         databus.players.forEach((player) => {
-          player.myKoupai = player.myKoupai.sort(this.cmp)
-          player.renderMyKoupai(ctx)
+          player.myCovers = player.myCovers.sort(this.cmp)
+          player.rendermyCovers(ctx)
         })
-      }
-    }
-  }
-  
-  faPai2() {
-    var arr = Array.from(databus.pokers)
-    databus.players.forEach((player) => {
-      while(player.myPokers.length != 13){
-        player.myPokers.push(databus.pokers[Math.floor(Math.random()*10)])
-      }
-    })
-  }
-  
-  faPai() {
-    var arr = Array.from(databus.pokers)
-    var idx
-    while(arr.length!=0) {
-      for (var i=0;i<databus.players.length;i++){
-        if(arr.length!=0) {
-          idx = Math.floor(Math.random()*10)
-          if(arr.length<10) {
-            idx = arr.length - 1
-          }
-          databus.players[i].myPokers.push(arr[idx])
-          arr.splice(idx,1);
-        }
       }
     }
   }

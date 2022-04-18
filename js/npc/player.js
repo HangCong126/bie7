@@ -9,41 +9,75 @@ atlas.src = 'images/pokers.png'
 
 export default class Player {
   constructor() {
+    this.id = 0
     this.sx = 0
     this.sy = 0
     this.score = 0
     this.finish = false
+    this.myTurn = false
+    this.isfirst = false
+    this.firstIndex = 0
     this.myPokers = []
-    this.myKoupai = []
+    this.myCovers = []
   }
-  init(sy) {
-    this.sy = sy
+  init(id) {
+    this.id = id
+    this.sy = id*40
   }
-  playMyPoker() {
-    console.log('wochupai %d',this.sy/40)
+  deleteMyPoker(index) {
+    this.myPokers.splice(index,1);
+  }
+  discardMyPoker() {
+    var minNum = databus.gitPokerNumber(this.myPokers[0].index);
+    var suits = databus.gitPokerSuits(this.myPokers[0].index);
+    console.log('playerId: %d, discard the index %d',this.id, this.myPokers[0].index);
+    console.log('playerId: %d, discard the number %d, suits: %d',this.id, minNum, suits);
+    this.score += minNum;
+    this.myCovers.push(this.myPokers[0])
+    this.deleteMyPoker(0);
+  }
+  playMyPokerbyDatabusIndex(databusIndex) {
     for (var i=this.myPokers.length-1;i>=0;i--) {
-      for (var j=0;j<databus.pokers.length;j++){
-        if(databus.pokers[j].index == this.myPokers[i].index){
-          if(databus.guidao[databus.pokers[j].index%4].isSuitable(databus.pokers[j].index)){
-            databus.pokers[j].vis = true
-            console.log('woxia %d',parseInt((databus.pokers[j].index)/4) + 1)
-            this.myPokers.splice(i,1);
-            databus.guidao[databus.pokers[j].index%4].getPoker(databus.pokers[j].index)
-            return true
-          }
-        }
+      if(this.myPokers[i].index == databusIndex){
+        this.playMyPokerbyIndex(i)
+        return true
       }
     }
-    return false
+  }
+  playMyPokerbyIndex(index) {
+    var databusIndex = this.myPokers[index].index;
+    var playNum = databus.gitPokerNumber(databusIndex);
+    var suits = databus.gitPokerSuits(databusIndex);
+    databus.pokers[databusIndex].vis = true
+    console.log('playerId: %d, play the index %d',this.id, databusIndex);
+    console.log('playerId: %d, play the number %d, suits: %d',this.id, playNum, suits);
+    this.deleteMyPoker(index);
+    databus.guidao[databusIndex%4].getPoker(databusIndex)
+  }
+  judgeMyPoker() {
+    this.myTurn = false
+    if(this.isfirst){
+      console.log('playerId: %d is first',this.id)
+      this.playMyPokerbyIndex(this.firstIndex)
+      this.isfirst = false
+      return true
+    }
+    for (var i=this.myPokers.length-1;i>=0;i--) {
+      if(databus.guidao[this.myPokers[i].index%4].isSuitable(this.myPokers[i].index)){
+        this.playMyPokerbyIndex(i)
+        return true
+      }
+    }
+    this.discardMyPoker();
   }
   renderMyPoker(ctx) {
     for (var i=0;i<this.myPokers.length;i++) {
         this.myPokers[i].renderPokerToPlayer(ctx,this.sy,i)
     }
   }
-  renderMyKoupai(ctx) {
-    for (var i=0;i<this.myKoupai.length;i++) {
-        this.myKoupai[i].renderPokerToPlayer(ctx,this.sy,i)
+  rendermyCovers(ctx) {
+    for (var i=0;i<this.myCovers.length;i++) {
+        this.myCovers[i].renderPokerToPlayer(ctx,this.sy,i)
     }
   }
 }
